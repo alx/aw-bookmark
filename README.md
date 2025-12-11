@@ -140,6 +140,8 @@ javascript:(function(){const category='work';fetch('http://localhost:5601/bookma
 
 A browser extension works on all websites (including those with CSP like GitHub) and provides a one-click interface for saving bookmarks.
 
+The Firefox extension is available on addons.mozilla.org: https://addons.mozilla.org/en-US/firefox/addon/aw-bookmark/
+
 #### Installation
 
 1. Open Firefox and go to `about:debugging#/runtime/this-firefox`
@@ -174,8 +176,9 @@ For permanent installation (survives browser restart):
 
 **Option 2: Sign and Install**
 ```bash
-cd aw-bookmark
-zip -r aw-bookmark-extension.zip extension/
+cd extension
+zip -r ../aw-bookmark-extension.zip .
+cd ..
 ```
 Then sign at https://addons.mozilla.org/developers/ and install the signed .xpi file
 
