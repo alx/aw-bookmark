@@ -6,8 +6,14 @@ dist/
 wheels/
 *.egg-info
 
+# dev
+private
+
 # Virtual environments
 .venv
 
 # uv
 uv.lock
+
+# Extension builds
+aw-bookmark-extension.zip
