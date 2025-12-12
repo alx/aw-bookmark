@@ -1,27 +1,23 @@
 {
   "manifest_version": 2,
   "name": "AW Bookmark",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Save bookmarks to ActivityWatch with one click",
-
   "browser_specific_settings": {
     "gecko": {
       "id": "aw-bookmark@activitywatch.net",
       "strict_min_version": "115.0"
     }
   },
-
   "permissions": [
     "activeTab",
     "clipboardWrite",
     "storage"
   ],
-
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Save to ActivityWatch"
   },
-
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
