@@ -1,0 +1,166 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: transparent;
+  color: #333;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  color: #333;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 10px;
+}
+
+h2 {
+  margin: 20px 0 10px 0;
+  font-size: 18px;
+  color: #555;
+}
+
+.description {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+input:invalid {
+  border-color: #f44336;
+}
+
+.help-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.url-preview {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border-left: 3px solid #4CAF50;
+}
+
+.url-preview code {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #2196F3;
+  word-break: break-all;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primary-btn {
+  background: #4CAF50;
+  color: white;
+}
+
+.primary-btn:hover {
+  background: #45a049;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+}
+
+.primary-btn:active {
+  transform: scale(0.98);
+}
+
+.primary-btn:disabled {
+  background: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.secondary-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.secondary-btn:hover {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.status {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.status.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status.hidden {
+  display: none;
+}

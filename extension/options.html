@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="options.css">
+  <title>AW Bookmark Settings</title>
+</head>
+<body>
+  <div class="container">
+    <form id="settings-form">
+      <div class="form-section">
+        <h2>Server Configuration</h2>
+        <p class="description">Configure your aw-bookmark server connection</p>
+
+        <div class="form-group">
+          <label for="protocol">Protocol</label>
+          <select id="protocol" name="protocol" required>
+            <option value="http">http://</option>
+            <option value="https">https://</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="host">Host</label>
+          <input
+            type="text"
+            id="host"
+            name="host"
+            placeholder="localhost"
+            pattern="^[a-zA-Z0-9.-]+$"
+            title="Valid hostname or IP address"
+            required
+          />
+          <span class="help-text">hostname or IP address (e.g., localhost, 127.0.0.1)</span>
+        </div>
+
+        <div class="form-group">
+          <label for="port">Port</label>
+          <input
+            type="number"
+            id="port"
+            name="port"
+            min="1"
+            max="65535"
+            placeholder="5601"
+            required
+          />
+          <span class="help-text">Port number (1-65535)</span>
+        </div>
+
+        <div class="url-preview">
+          <strong>Server URL:</strong> <code id="url-display">http://localhost:5601/bookmark</code>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" id="save-btn" class="primary-btn">Save Settings</button>
+        <button type="button" id="reset-btn" class="secondary-btn">Reset to Defaults</button>
+      </div>
+
+      <div id="status" class="status hidden"></div>
+    </form>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

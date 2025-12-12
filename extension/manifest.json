@@ -7,20 +7,23 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "aw-bookmark@activitywatch.net",
-      "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": ["browsingActivity"]
-      }
+      "strict_min_version": "115.0"
     }
   },
 
   "permissions": [
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "storage"
   ],
 
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Save to ActivityWatch"
+  },
+
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
   }
 }
