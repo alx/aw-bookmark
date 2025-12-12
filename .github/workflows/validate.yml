@@ -1,0 +1,34 @@
+name: Validate
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'extension/**'
+
+jobs:
+  lint:
+    name: Lint Extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install web-ext
+        run: npm install -g web-ext
+
+      - name: Lint extension
+        run: web-ext lint --source-dir=extension
+
+      - name: Validate manifest
+        run: |
+          jq empty extension/manifest.json
+          echo "manifest.json is valid JSON"
+
+      - name: Test build
+        run: |
+          chmod +x scripts/build-extension.sh
+          ./scripts/build-extension.sh
+          test -f aw-bookmark-extension.zip

@@ -1,0 +1,228 @@
+name: Release Extension
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'extension/**'
+      - 'scripts/build-extension.sh'
+      - '.github/workflows/release.yml'
+
+permissions:
+  contents: write  # For creating releases and tags
+
+jobs:
+  version-bump:
+    name: Determine Version Bump
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+      should_release: ${{ steps.bump.outputs.should_release }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for commit analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          pip install yq  # For TOML manipulation
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          # Get current version from manifest.json
+          CURRENT_VERSION=$(jq -r '.version' extension/manifest.json)
+          echo "Current version: $CURRENT_VERSION"
+
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag found, using initial commit"
+            COMMIT_RANGE="HEAD"
+          else
+            COMMIT_RANGE="${LAST_TAG}..HEAD"
+          fi
+
+          # Analyze commits for conventional commit types
+          COMMITS=$(git log $COMMIT_RANGE --pretty=format:"%s")
+          echo "Analyzing commits: $COMMITS"
+
+          # Determine bump type
+          BUMP_TYPE="none"
+          if echo "$COMMITS" | grep -qE "BREAKING CHANGE:|^[a-z]+(\(.+\))?!:"; then
+            BUMP_TYPE="major"
+          elif echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
+            BUMP_TYPE="minor"
+          elif echo "$COMMITS" | grep -qE "^fix(\(.+\))?:"; then
+            BUMP_TYPE="patch"
+          fi
+
+          echo "Bump type: $BUMP_TYPE"
+
+          if [ "$BUMP_TYPE" = "none" ]; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No version bump needed (no feat/fix/breaking commits)"
+            exit 0
+          fi
+
+          # Calculate new version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "New version: $NEW_VERSION"
+
+          # Update manifest.json
+          jq --arg version "$NEW_VERSION" '.version = $version' extension/manifest.json > extension/manifest.json.tmp
+          mv extension/manifest.json.tmp extension/manifest.json
+
+          # Update pyproject.toml
+          tomlq -t --arg version "$NEW_VERSION" '.project.version = $version' pyproject.toml > pyproject.toml.tmp
+          mv pyproject.toml.tmp pyproject.toml
+
+          # Commit and tag
+          git add extension/manifest.json pyproject.toml
+          git commit -m "chore: bump version to $NEW_VERSION"
+          git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+          git push origin main
+          git push origin "v$NEW_VERSION"
+
+          # Set outputs
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build Extension
+    runs-on: ubuntu-latest
+    needs: version-bump
+    if: needs.version-bump.outputs.should_release == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.version-bump.outputs.new_version }}
+
+      - name: Build extension
+        run: |
+          chmod +x scripts/build-extension.sh
+          ./scripts/build-extension.sh
+
+      - name: Validate build
+        run: |
+          # Check ZIP exists
+          test -f aw-bookmark-extension.zip
+
+          # Verify contents
+          unzip -l aw-bookmark-extension.zip
+
+          # Verify version in manifest
+          MANIFEST_VERSION=$(unzip -p aw-bookmark-extension.zip manifest.json | jq -r '.version')
+          if [ "$MANIFEST_VERSION" != "${{ needs.version-bump.outputs.new_version }}" ]; then
+            echo "Version mismatch! Expected ${{ needs.version-bump.outputs.new_version }}, got $MANIFEST_VERSION"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-zip
+          path: aw-bookmark-extension.zip
+          retention-days: 30
+
+  release:
+    name: Create Release and Publish
+    runs-on: ubuntu-latest
+    needs: [version-bump, build]
+    if: needs.version-bump.outputs.should_release == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.version-bump.outputs.new_version }}
+          fetch-depth: 0
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-zip
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="${LAST_TAG}..HEAD"
+          fi
+
+          CHANGELOG=$(git log $RANGE --pretty=format:"- %s (%h)" --no-merges)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.version-bump.outputs.new_version }}
+          name: aw-bookmark v${{ needs.version-bump.outputs.new_version }}
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Installation
+            - Download `aw-bookmark-extension.zip`
+            - Or install from [Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/aw-bookmark/)
+          files: aw-bookmark-extension.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install web-ext
+        run: npm install -g web-ext
+
+      - name: Submit to Mozilla Add-ons
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.MOZILLA_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.MOZILLA_JWT_SECRET }}
+        run: |
+          web-ext sign \
+            --channel=listed \
+            --api-key="$WEB_EXT_API_KEY" \
+            --api-secret="$WEB_EXT_API_SECRET" \
+            --source-dir=extension \
+            --artifacts-dir=web-ext-artifacts
+
+      - name: Upload signed extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-extension
+          path: web-ext-artifacts/*.xpi
+          retention-days: 90

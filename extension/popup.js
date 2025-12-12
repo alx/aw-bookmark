@@ -1,3 +1,10 @@
+// Default settings
+const DEFAULT_SETTINGS = {
+  protocol: 'http',
+  host: 'localhost',
+  port: 5601
+};
+
 // Get all emoji buttons
 const buttons = document.querySelectorAll('.emoji-btn');
 const statusDiv = document.getElementById('status');
@@ -9,6 +16,18 @@ buttons.forEach(button => {
     await saveBookmark(category, button);
   });
 });
+
+// Get server URL from settings
+async function getServerUrl() {
+  try {
+    const result = await browser.storage.sync.get('serverSettings');
+    const settings = result.serverSettings || DEFAULT_SETTINGS;
+    return `${settings.protocol}://${settings.host}:${settings.port}/bookmark`;
+  } catch (error) {
+    console.error('Error loading settings, using defaults:', error);
+    return 'http://localhost:5601/bookmark';
+  }
+}
 
 async function saveBookmark(category, button) {
   try {
@@ -30,8 +49,11 @@ async function saveBookmark(category, button) {
       category: category
     };
 
+    // Get server URL from settings
+    const serverUrl = await getServerUrl();
+
     // Send to aw-bookmark server
-    const response = await fetch('http://localhost:5601/bookmark', {
+    const response = await fetch(serverUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -47,9 +69,6 @@ async function saveBookmark(category, button) {
 
     // Show success message
     showStatus(`✓ Saved to ${category}`, 'success');
-
-    // Auto-close popup after 1 second
-    setTimeout(() => window.close(), 1000);
 
   } catch (error) {
     console.error('Error saving bookmark:', error);
