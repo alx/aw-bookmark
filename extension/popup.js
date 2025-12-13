@@ -5,17 +5,68 @@ const DEFAULT_SETTINGS = {
   port: 5601
 };
 
-// Get all emoji buttons
-const buttons = document.querySelectorAll('.emoji-btn');
+// Default categories (fallback if not configured)
+const DEFAULT_CATEGORIES = [
+  { id: "cat_1", emoji: "🤖", label: "toptopbot" },
+  { id: "cat_2", emoji: "📚", label: "education" },
+  { id: "cat_3", emoji: "✨", label: "ahbon" },
+  { id: "cat_4", emoji: "😂", label: "permalol" },
+  { id: "cat_5", emoji: "🏛️", label: "politilol" },
+  { id: "cat_6", emoji: "💰", label: "crypto" },
+  { id: "cat_7", emoji: "👤", label: "self" }
+];
+
+// DOM elements
+const buttonsContainer = document.getElementById('buttons-container');
 const statusDiv = document.getElementById('status');
 
-// Add click handler to each button
-buttons.forEach(button => {
-  button.addEventListener('click', async () => {
-    const category = button.dataset.category;
-    await saveBookmark(category, button);
-  });
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadAndRenderCategories();
 });
+
+// Load categories from storage and render buttons
+async function loadAndRenderCategories() {
+  try {
+    const result = await browser.storage.sync.get('bookmarkCategories');
+    const categories = result.bookmarkCategories || DEFAULT_CATEGORIES;
+
+    renderCategoryButtons(categories);
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    // Fallback to defaults
+    renderCategoryButtons(DEFAULT_CATEGORIES);
+  }
+}
+
+// Render category buttons dynamically
+function renderCategoryButtons(categories) {
+  buttonsContainer.innerHTML = '';
+
+  categories.forEach(category => {
+    const button = document.createElement('button');
+    button.className = 'emoji-btn';
+    button.dataset.category = category.label;
+
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'emoji';
+    emojiSpan.textContent = category.emoji;
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'label';
+    labelSpan.textContent = category.label;
+
+    button.appendChild(emojiSpan);
+    button.appendChild(labelSpan);
+
+    // Add click handler
+    button.addEventListener('click', async () => {
+      await saveBookmark(category.label, button);
+    });
+
+    buttonsContainer.appendChild(button);
+  });
+}
 
 // Get server URL from settings
 async function getServerUrl() {

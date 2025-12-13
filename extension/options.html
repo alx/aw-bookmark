@@ -53,6 +53,32 @@
         </div>
       </div>
 
+      <div class="form-section">
+        <h2>Bookmark Categories</h2>
+        <p class="description">Customize the categories shown in the bookmark popup</p>
+
+        <div id="categories-list" class="categories-list">
+          <!-- Categories will be dynamically rendered here -->
+        </div>
+
+        <div class="add-category">
+          <input
+            type="text"
+            id="new-category-emoji"
+            placeholder="📌"
+            maxlength="2"
+            class="emoji-input"
+          />
+          <input
+            type="text"
+            id="new-category-label"
+            placeholder="Category name"
+            class="label-input"
+          />
+          <button type="button" id="add-category-btn" class="add-btn">+ Add</button>
+        </div>
+      </div>
+
       <div class="button-group">
         <button type="submit" id="save-btn" class="primary-btn">Save Settings</button>
         <button type="button" id="reset-btn" class="secondary-btn">Reset to Defaults</button>
