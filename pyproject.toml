@@ -1,6 +1,6 @@
 [project]
 name = "aw-bookmark"
-version = "1.1.0"
+version = "1.2.0"
 description = "HTTP proxy to store bookmark-pinning events in ActivityWatch"
 readme = "README.md"
 requires-python = ">=3.12"
