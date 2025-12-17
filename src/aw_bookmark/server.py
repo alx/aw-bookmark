@@ -2,6 +2,16 @@ from flask import Flask, request, jsonify
 from aw_client import ActivityWatchClient
 from aw_core.models import Event
 from datetime import datetime, timezone
+import logging
+from .config import load_config, get_messaging_config
+from .messaging import MessagingManager
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger('aw-bookmark')
 
 app = Flask(__name__)
 
@@ -23,6 +33,16 @@ try:
     client.create_bucket(bucket_id, event_type="bookmark")
 except Exception as e:
     print(f"Warning: Could not create bucket: {e}")
+
+# Load configuration and initialize messaging
+config = load_config()
+messaging_config = get_messaging_config(config)
+messaging_manager = MessagingManager.from_config(messaging_config)
+
+if messaging_manager:
+    logger.info("Messaging integration enabled")
+else:
+    logger.info("Messaging integration disabled")
 
 
 def validate_category(category):
@@ -87,6 +107,15 @@ def bookmark():
         )
 
         client.insert_event(bucket_id, event)
+
+        # Send to messaging clients asynchronously
+        if messaging_manager:
+            category = event_data.get('category')
+            messaging_manager.send_async(
+                url=data['url'],
+                title=data['title'],
+                category=category
+            )
 
         return jsonify({'status': 'success', 'message': 'Bookmark stored'}), 201
 

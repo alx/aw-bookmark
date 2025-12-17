@@ -4,7 +4,7 @@ version = "1.2.0"
 description = "HTTP proxy to store bookmark-pinning events in ActivityWatch"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["aw-client>=0.5.15", "flask>=3.1.2"]
+dependencies = ["aw-client>=0.5.15", "flask>=3.1.2", "httpx>=0.28.1"]
 
 [[project.authors]]
 name = "Alexandre Girard"

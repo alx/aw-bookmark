@@ -1,0 +1,48 @@
+{
+  "messaging": {
+    "enabled": true,
+    "clients": {
+      "matrix": {
+        "enabled": true,
+        "homeserver": "https://matrix.org",
+        "access_token": "YOUR_MATRIX_ACCESS_TOKEN_HERE",
+        "rooms": {
+          "work": "!YOUR_ROOM_ID:matrix.org",
+          "personal": "!YOUR_ROOM_ID:matrix.org",
+          "education": "!YOUR_ROOM_ID:matrix.org",
+          "toptopbot": "!YOUR_ROOM_ID:matrix.org",
+          "ahbon": "!YOUR_ROOM_ID:matrix.org",
+          "permalol": "!YOUR_ROOM_ID:matrix.org",
+          "politilol": "!YOUR_ROOM_ID:matrix.org",
+          "crypto": "!YOUR_ROOM_ID:matrix.org",
+          "self": "!YOUR_ROOM_ID:matrix.org",
+          "default": "!YOUR_DEFAULT_ROOM_ID:matrix.org"
+        },
+        "message_template": "🔖 **{title}**\n{url}",
+        "timeout": 5.0
+      },
+      "discord": {
+        "enabled": false,
+        "webhook_urls": {
+          "work": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
+          "personal": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
+          "default": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+        },
+        "message_template": "🔖 **{title}**\n{url}",
+        "timeout": 5.0
+      }
+    },
+    "category_routing": {
+      "work": ["matrix"],
+      "personal": ["matrix"],
+      "education": ["matrix"],
+      "toptopbot": ["matrix"],
+      "ahbon": ["matrix"],
+      "permalol": ["matrix"],
+      "politilol": ["matrix"],
+      "crypto": ["matrix"],
+      "self": ["matrix"],
+      "_default": ["matrix"]
+    }
+  }
+}
