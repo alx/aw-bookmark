@@ -65,13 +65,46 @@ class SignalClient(MessagingClient):
             return False
 
         try:
-            recipient_list = self._get_recipients_for_category(category)
-            if not recipient_list:
+            individuals, groups = self._get_recipients_for_category(category)
+            if not individuals and not groups:
                 self.logger.warning(f"No Signal recipients configured for category: {category}")
                 return False
 
             message = self.format_message(url, title)
+            timeout = self.config.get('timeout', 10.0)
 
+            # Signal API requires separate calls for individuals and groups
+            success_count = 0
+            total_count = 0
+
+            # Send to individuals if any
+            if individuals:
+                total_count += 1
+                if self._send_to_recipients(individuals, message, timeout, "individuals"):
+                    success_count += 1
+
+            # Send to groups if any
+            if groups:
+                total_count += 1
+                if self._send_to_recipients(groups, message, timeout, "groups"):
+                    success_count += 1
+
+            # Return True if at least one send succeeded
+            if success_count > 0:
+                total_recipients = len(individuals) + len(groups)
+                self.logger.info(f"Signal message sent to {total_recipients} recipient(s) for category '{category}' ({success_count}/{total_count} calls succeeded)")
+                return True
+            else:
+                self.logger.error(f"All Signal send attempts failed for category '{category}'")
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Signal send failed: {e}", exc_info=True)
+            return False
+
+    def _send_to_recipients(self, recipients: List[str], message: str, timeout: float, recipient_type: str) -> bool:
+        """Send message to a list of recipients (either individuals or groups)."""
+        try:
             api_url = self.config['api_url'].rstrip('/')
             endpoint = f"{api_url}/v2/send"
 
@@ -82,48 +115,45 @@ class SignalClient(MessagingClient):
             body = {
                 'message': message,
                 'number': self.config['sender'],
-                'recipients': recipient_list
+                'recipients': recipients
             }
-
-            timeout = self.config.get('timeout', 10.0)
 
             with httpx.Client(timeout=timeout) as client:
                 response = client.post(endpoint, json=body, headers=headers)
                 response.raise_for_status()
 
-            self.logger.info(f"Signal message sent to {len(recipient_list)} recipient(s) for category '{category}'")
+            self.logger.debug(f"Signal message sent to {len(recipients)} {recipient_type}")
             return True
 
         except httpx.HTTPStatusError as e:
-            self.logger.error(f"Signal HTTP error: {e.response.status_code} - {e.response.text}")
+            self.logger.error(f"Signal HTTP error ({recipient_type}): {e.response.status_code} - {e.response.text}")
             return False
         except httpx.TimeoutException:
-            self.logger.error(f"Signal timeout after {timeout}s")
+            self.logger.error(f"Signal timeout after {timeout}s ({recipient_type})")
             return False
         except httpx.RequestError as e:
-            self.logger.error(f"Signal request error: {e}")
+            self.logger.error(f"Signal request error ({recipient_type}): {e}")
             return False
         except Exception as e:
-            self.logger.error(f"Signal send failed: {e}", exc_info=True)
+            self.logger.error(f"Signal send failed ({recipient_type}): {e}", exc_info=True)
             return False
 
-    def _get_recipients_for_category(self, category: Optional[str]) -> List[str]:
-        """Get combined list of recipients for category."""
+    def _get_recipients_for_category(self, category: Optional[str]) -> tuple[List[str], List[str]]:
+        """
+        Get recipients for category, split into individuals and groups.
+
+        Returns:
+            (individuals, groups) tuple of lists
+        """
         recipients = self.config['recipients']
 
         if category and category in recipients:
             recipient_config = recipients[category]
-            result = []
+            individuals = recipient_config.get('individuals', [])
+            groups = recipient_config.get('groups', [])
+            return individuals, groups
 
-            if 'individuals' in recipient_config:
-                result.extend(recipient_config['individuals'])
-
-            if 'groups' in recipient_config:
-                result.extend(recipient_config['groups'])
-
-            return result
-
-        return []
+        return [], []
 
     def _is_valid_phone_number(self, phone: str) -> bool:
         """Validate phone number format."""
