@@ -21,6 +21,51 @@
         "message_template": "🔖 **{title}**\n{url}",
         "timeout": 5.0
       },
+      "signal": {
+        "enabled": false,
+        "api_url": "http://localhost:8080",
+        "sender": "+1234567890",
+        "recipients": {
+          "work": {
+            "individuals": ["+1111111111", "+2222222222"],
+            "groups": ["group.YOUR_GROUP_ID_HERE"]
+          },
+          "personal": {
+            "individuals": ["+3333333333"],
+            "groups": []
+          },
+          "education": {
+            "individuals": [],
+            "groups": ["group.YOUR_GROUP_ID_HERE"]
+          },
+          "toptopbot": {
+            "individuals": ["+4444444444"],
+            "groups": []
+          },
+          "ahbon": {
+            "individuals": ["+5555555555"],
+            "groups": []
+          },
+          "permalol": {
+            "individuals": ["+6666666666"],
+            "groups": []
+          },
+          "politilol": {
+            "individuals": ["+7777777777"],
+            "groups": []
+          },
+          "crypto": {
+            "individuals": ["+8888888888"],
+            "groups": []
+          },
+          "self": {
+            "individuals": ["+9999999999"],
+            "groups": []
+          }
+        },
+        "message_template": "🔖 {title}\n{url}",
+        "timeout": 10.0
+      },
       "discord": {
         "enabled": false,
         "webhook_urls": {
@@ -30,6 +75,27 @@
         },
         "message_template": "🔖 **{title}**\n{url}",
         "timeout": 5.0
+      },
+      "whatsapp": {
+        "enabled": false,
+        "api_url": "http://localhost:3000",
+        "session": "default",
+        "recipients": {
+          "work": {
+            "individuals": ["+1234567890"],
+            "groups": ["123456789@g.us"]
+          },
+          "personal": {
+            "individuals": ["+9876543210"],
+            "groups": []
+          },
+          "education": {
+            "individuals": [],
+            "groups": ["987654321@g.us"]
+          }
+        },
+        "message_template": "🔖 {title}\n{url}",
+        "timeout": 10.0
       }
     },
     "category_routing": {
@@ -42,7 +108,8 @@
       "politilol": ["matrix"],
       "crypto": ["matrix"],
       "self": ["matrix"],
-      "_default": ["matrix"]
+      "_default": ["matrix"],
+      "_comment": "To enable multiple clients for a category, add them to the list. Example: 'work': ['matrix', 'signal', 'whatsapp']"
     }
   }
 }

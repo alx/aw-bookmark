@@ -100,11 +100,15 @@ class MessagingManager:
 
         # Import client classes
         from .clients.matrix import MatrixClient
-        # from .clients.discord import DiscordClient  # Future
+        from .clients.signal import SignalClient
+        from .clients.discord import DiscordClient
+        from .clients.whatsapp import WhatsAppClient
 
         client_classes = {
             'matrix': MatrixClient,
-            # 'discord': DiscordClient,  # Future
+            'signal': SignalClient,
+            'discord': DiscordClient,
+            'whatsapp': WhatsAppClient,
         }
 
         # Initialize enabled clients
