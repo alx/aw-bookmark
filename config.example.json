@@ -68,10 +68,19 @@
       },
       "discord": {
         "enabled": false,
-        "webhook_urls": {
-          "work": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
-          "personal": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
-          "default": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+        "_comment": "Use bot_token + channel_ids (requires discord.py)",
+        "bot_token": "YOUR_BOT_TOKEN_HERE",
+        "channel_ids": {
+          "work": "123456789012345678",
+          "personal": "987654321098765432",
+          "education": "345678901234567890",
+          "toptopbot": "456789012345678901",
+          "ahbon": "567890123456789012",
+          "permalol": "678901234567890123",
+          "politilol": "789012345678901234",
+          "crypto": "890123456789012345",
+          "self": "901234567890123456",
+          "default": "111111111111111111"
         },
         "message_template": "🔖 **{title}**\n{url}",
         "timeout": 5.0

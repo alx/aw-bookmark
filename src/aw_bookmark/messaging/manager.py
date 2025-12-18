@@ -39,8 +39,10 @@ class MessagingManager:
         # Determine which clients to notify
         client_names = self._get_clients_for_category(category)
 
+        self.logger.info(f"[ROUTING] Initiating for category='{category}', url={url[:60]}{'...' if len(url) > 60 else ''}, targets={len(client_names)} clients{f': {client_names}' if client_names else ''}")
+
         if not client_names:
-            self.logger.debug(f"No clients configured for category: {category}")
+            self.logger.info(f"[ROUTING] No clients configured for category: {category}")
             return
 
         # Send in background thread to avoid blocking request
@@ -50,38 +52,55 @@ class MessagingManager:
             daemon=True  # Don't prevent shutdown
         )
         thread.start()
+        self.logger.debug(f"[THREAD] Started async dispatch for category='{category}', thread={thread.name}")
 
     def _send_to_clients(self, client_names: List[str], url: str, title: str, category: Optional[str]):
         """Internal method to send to multiple clients (runs in thread)."""
+        self.logger.debug(f"[THREAD] Worker started for category='{category}', processing {len(client_names)} clients")
+
+        success_count = 0
+        failure_count = 0
+        skipped_count = 0
+
         for client_name in client_names:
             client = self.clients.get(client_name)
 
             if not client:
-                self.logger.warning(f"Client '{client_name}' not found")
+                self.logger.warning(f"[DISPATCH] Client '{client_name}' not found in registry")
+                skipped_count += 1
                 continue
 
             if not client.is_enabled():
-                self.logger.debug(f"Client '{client_name}' disabled")
+                self.logger.info(f"[DISPATCH] Client '{client_name}' disabled, skipping")
+                skipped_count += 1
                 continue
+
+            self.logger.debug(f"[DISPATCH] Sending to {client_name}: url={url[:60]}{'...' if len(url) > 60 else ''}, title={title[:40]}{'...' if len(title) > 40 else ''}")
 
             try:
                 success = client.send_message(url, title, category)
                 if success:
-                    self.logger.info(f"Sent to {client_name}")
+                    self.logger.info(f"[DISPATCH] ✓ Sent to {client_name}")
+                    success_count += 1
                 else:
-                    self.logger.warning(f"Failed to send to {client_name}")
+                    self.logger.warning(f"[DISPATCH] ✗ Failed to send to {client_name}")
+                    failure_count += 1
             except Exception as e:
                 # Safety net - client implementations should not raise
-                self.logger.error(f"Unexpected error from {client_name}: {e}", exc_info=True)
+                self.logger.error(f"[DISPATCH] Unexpected error from {client_name}: {e}", exc_info=True)
+                failure_count += 1
+
+        self.logger.info(f"[SUMMARY] category='{category}', clients_targeted={len(client_names)}, sent={success_count}, failed={failure_count}, skipped={skipped_count}")
+        self.logger.debug(f"[THREAD] Worker completed for category='{category}'")
 
     def _get_clients_for_category(self, category: Optional[str]) -> List[str]:
         """Get list of client names for category."""
         if category and category in self.routing:
             clients = self.routing[category]
-            self.logger.info(f"Category '{category}' matched. Routing to: {clients}")
+            self.logger.info(f"[CATEGORY] '{category}' matched routing rule → {clients}")
             return clients
 
-        self.logger.info(f"No specific rule for category '{category}'. No clients to route to.")
+        self.logger.info(f"[CATEGORY] No routing rule for '{category}' → no clients selected")
         return []
 
     @classmethod

@@ -108,6 +108,8 @@ def bookmark():
 
         client.insert_event(bucket_id, event)
 
+        logger.info(f"[BOOKMARK] Received: url={data['url']}, title={data['title'][:50]}{'...' if len(data['title']) > 50 else ''}, category={event_data.get('category', 'none')}")
+
         # Send to messaging clients asynchronously
         if messaging_manager:
             category = event_data.get('category')
