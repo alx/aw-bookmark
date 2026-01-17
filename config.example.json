@@ -5,6 +5,10 @@
       "matrix": {
         "enabled": true,
         "homeserver": "https://matrix.org",
+        "_auth_comment": "Use EITHER (user_id + password) OR access_token. Password auth is recommended as it handles token refresh automatically.",
+        "user_id": "@your_username:matrix.org",
+        "password": "YOUR_PASSWORD_HERE",
+        "_access_token_comment": "Alternative: use static access_token (may expire if homeserver uses refresh tokens)",
         "access_token": "YOUR_MATRIX_ACCESS_TOKEN_HERE",
         "rooms": {
           "work": "!YOUR_ROOM_ID:matrix.org",
